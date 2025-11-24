@@ -13,7 +13,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 커스텀 CSS: 그라디언트 배경, 카드 스타일, 폰트 조정
+# Custom CSS: 그라디언트 배경, 카드 스타일, 폰트 조정
+# ***주의: 이 부분이 SyntaxError의 원인이 될 수 있으므로, 복사 시 주의***
 st.markdown("""
     <style>
     /* 전체 배경 및 폰트 */
@@ -136,6 +137,7 @@ else:
         
         top_country = df_sorted.iloc[0]['Country']
         top_val = df_sorted.iloc[0][selected_mbti]
+        # 'South Korea'가 데이터에 있을 경우에만 값을 가져오고, 없으면 0 처리
         my_val = df_sorted[df_sorted['Country'] == 'South Korea'][selected_mbti].values[0] if 'South Korea' in df_sorted['Country'].values else 0
         
         # 통계 요약 카드 (Metrics)
@@ -147,8 +149,10 @@ else:
         with col3:
             st.metric(label="🇰🇷 한국 내 비율", value=f"{my_val:.2%}")
         with col4:
-            rank = df_sorted[df_sorted['Country'] == 'South Korea'].index[0] if 'South Korea' in df_sorted['Country'].values else -1
-            st.metric(label="🏆 한국 순위 (vs 전세계)", value=f"{rank}위" if rank != -1 else "N/A")
+            # 한국 순위 계산 (index는 0부터 시작하므로 1을 더함)
+            korea_row = df_sorted[df_sorted['Country'] == 'South Korea']
+            rank = korea_row.index[0] + 1 if not korea_row.empty else "N/A"
+            st.metric(label="🏆 한국 순위 (vs 전세계)", value=f"{rank}위" if rank != "N/A" else "N/A")
 
         # 맞춤형 멘트
         st.markdown(f"""
@@ -166,7 +170,7 @@ else:
         tab1, tab2 = st.tabs(["🌍 Global Map (2D)", "🌌 MBTI Galaxy (3D)"])
         
         with tab1:
-            st.subheader(f"🗺️ 전 세계 {selected_mbti} 분포도")
+            st.subheader(f"🗺️️ 전 세계 {selected_mbti} 분포도")
             # Choropleth Map
             fig_map = px.choropleth(
                 df,
@@ -190,14 +194,12 @@ else:
             st.subheader("🌌 3D 성격 성향 분석")
             st.write(f"{selected_mbti}와 다른 유형(가장 반대되는 유형 등) 간의 국가별 상관관계를 3D로 탐색합니다.")
             
-            # 비교군 설정 (재미를 위해 임의의 반대 성향 혹은 인접 성향 선택)
-            # 예: INTJ 선택 시 -> X: INTJ, Y: ESFP(반대), Z: INTP(유사)
-            # 로직 단순화를 위해: X=선택된 MBTI, Y=랜덤1, Z=랜덤2 (여기서는 고정값 사용)
-            
+            # 3D 축 설정을 위한 비교 MBTI 유형 선택
             compare_x = selected_mbti
-            # 데이터프레임에서 MBTI만 추출하여 상관관계가 낮은(반대인) 컬럼 찾기 등의 로직이 가능하나,
-            # 여기서는 시각적 재미를 위해 고정된 'Extrovert' 대장(ESTP)과 'Introvert' 대장(INTP)를 축으로 씁니다.
-            # 만약 선택된게 ESTP면 다른 걸로 교체.
+            # 비교군 설정을 위해 임의의 유형 2개 선택 (선택된 MBTI와 겹치지 않게)
+            all_mbti = list(mbti_info.keys())
+            
+            # 선택된 MBTI가 아닐 경우만 사용
             compare_y = "ESTP" if selected_mbti != "ESTP" else "INFJ"
             compare_z = "INFP" if selected_mbti != "INFP" else "ESTJ"
 
@@ -224,4 +226,12 @@ else:
                 margin={"r":0,"t":30,"l":0,"b":0},
                 height=600
             )
-            st.plotly_chart(fig_3d, use
+            st.plotly_chart(fig_3d, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"데이터를 처리하는 중 오류가 발생했습니다: {e}")
+        st.write("CSV 파일의 형식을 확인해주세요.")
+
+# 푸터
+st.markdown("---")
+st.markdown("<div style='text-align: center; color: grey;'>Created with ❤️ by Streamlit & AI | Data Source: Kaggle/User Upload</div>", unsafe_allow_html=True)
