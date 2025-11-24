@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+# 'streamlit-lottie' 라이브러리 import
 from streamlit_lottie import st_lottie
 import requests
 
@@ -14,7 +15,6 @@ st.set_page_config(
 )
 
 # Custom CSS: 그라디언트 배경, 카드 스타일, 폰트 조정
-# ***주의: 이 부분이 SyntaxError의 원인이 될 수 있으므로, 복사 시 주의***
 st.markdown("""
     <style>
     /* 전체 배경 및 폰트 */
@@ -51,17 +51,21 @@ st.markdown("""
 
 @st.cache_data
 def load_data():
-    # 파일이 같은 경로에 있다고 가정
     df = pd.read_csv("countriesMBTI_16types.csv")
     return df
 
 def load_lottieurl(url: str):
-    r = requests.get(url)
-    if r.status_code != 200:
+    try:
+        r = requests.get(url, timeout=5) # 타임아웃 5초 설정 추가
+        if r.status_code != 200:
+            st.warning(f"Lottie URL 접근 실패 (Status: {r.status_code}): {url}")
+            return None
+        return r.json()
+    except requests.exceptions.RequestException as e:
+        st.warning(f"Lottie URL 로드 중 네트워크 오류 발생: {e}")
         return None
-    return r.json()
 
-# MBTI 설명 및 메타데이터
+# MBTI 설명 및 메타데이터 (이전과 동일)
 mbti_info = {
     "INTJ": {"name": "용의주도한 전략가", "desc": "상상력이 풍부하며 철두철미한 계획을 세우는 전략가형.", "icon": "♟️", "color": "#663399"},
     "INTP": {"name": "논리적인 사색가", "desc": "끊임없이 새로운 지식을 갈구하는 혁신가형.", "icon": "🧪", "color": "#3399ff"},
@@ -88,7 +92,9 @@ with st.sidebar:
     
     # Lottie 애니메이션 (뇌/생각)
     lottie_brain = load_lottieurl("https://assets10.lottiefiles.com/packages/lf20_SkhtL8.json")
-    st_lottie(lottie_brain, height=150, key="brain_sidebar")
+    # ✅ Lottie 로딩 실패 시 에러 방지 로직 추가
+    if lottie_brain:
+        st_lottie(lottie_brain, height=150, key="brain_sidebar")
     
     st.markdown("### 🎯 Select Your MBTI")
     
@@ -116,7 +122,12 @@ if selected_mbti == "선택해주세요":
     with col2:
         # 웰컴 애니메이션
         lottie_welcome = load_lottieurl("https://assets3.lottiefiles.com/packages/lf20_qp1q7wct.json")
-        st_lottie(lottie_welcome, height=400, key="welcome")
+        
+        # ✅ Lottie 로딩 실패 시 에러 방지 로직 추가
+        if lottie_welcome:
+            st_lottie(lottie_welcome, height=400, key="welcome")
+        else:
+            st.warning("애니메이션 로딩에 실패했습니다. (네트워크/URL 문제)")
 
 else:
     # --- 선택 후 화면 ---
@@ -137,8 +148,9 @@ else:
         
         top_country = df_sorted.iloc[0]['Country']
         top_val = df_sorted.iloc[0][selected_mbti]
-        # 'South Korea'가 데이터에 있을 경우에만 값을 가져오고, 없으면 0 처리
-        my_val = df_sorted[df_sorted['Country'] == 'South Korea'][selected_mbti].values[0] if 'South Korea' in df_sorted['Country'].values else 0
+        
+        korea_row = df_sorted[df_sorted['Country'] == 'South Korea']
+        my_val = korea_row[selected_mbti].values[0] if not korea_row.empty else 0
         
         # 통계 요약 카드 (Metrics)
         col1, col2, col3, col4 = st.columns(4)
@@ -150,7 +162,6 @@ else:
             st.metric(label="🇰🇷 한국 내 비율", value=f"{my_val:.2%}")
         with col4:
             # 한국 순위 계산 (index는 0부터 시작하므로 1을 더함)
-            korea_row = df_sorted[df_sorted['Country'] == 'South Korea']
             rank = korea_row.index[0] + 1 if not korea_row.empty else "N/A"
             st.metric(label="🏆 한국 순위 (vs 전세계)", value=f"{rank}위" if rank != "N/A" else "N/A")
 
@@ -196,10 +207,6 @@ else:
             
             # 3D 축 설정을 위한 비교 MBTI 유형 선택
             compare_x = selected_mbti
-            # 비교군 설정을 위해 임의의 유형 2개 선택 (선택된 MBTI와 겹치지 않게)
-            all_mbti = list(mbti_info.keys())
-            
-            # 선택된 MBTI가 아닐 경우만 사용
             compare_y = "ESTP" if selected_mbti != "ESTP" else "INFJ"
             compare_z = "INFP" if selected_mbti != "INFP" else "ESTJ"
 
@@ -230,7 +237,7 @@ else:
 
     except Exception as e:
         st.error(f"데이터를 처리하는 중 오류가 발생했습니다: {e}")
-        st.write("CSV 파일의 형식을 확인해주세요.")
+        st.write("CSV 파일의 형식이나 Streamlit 버전 호환성을 확인해주세요.")
 
 # 푸터
 st.markdown("---")
