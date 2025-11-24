@@ -11,7 +11,7 @@ st.set_page_config(
 # 2. 데이터 로드 함수 (캐싱을 사용하여 성능 최적화)
 @st.cache_data
 def load_data():
-    # CSV 파일 로드 (파일 이름이 정확해야 합니다)
+    # CSV 파일 로드 (파일 이름이 정확해야 합니다)d
     try:
         df = pd.read_csv('countriesMBTI_16types.csv')
         return df
