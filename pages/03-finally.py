@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-# 'streamlit-lottie' 라이브러리 import
 from streamlit_lottie import st_lottie
 import requests
 
@@ -56,12 +55,15 @@ def load_data():
 
 def load_lottieurl(url: str):
     try:
-        r = requests.get(url, timeout=5) # 타임아웃 5초 설정 추가
+        # LottieFiles API는 외부 접근을 막을 수 있으므로 안정적인 URL 사용 및 타임아웃 설정
+        r = requests.get(url, timeout=5) 
         if r.status_code != 200:
-            st.warning(f"Lottie URL 접근 실패 (Status: {r.status_code}): {url}")
+            # 403 Forbidden 에러 발생 시 경고 메시지 출력 후 None 반환
+            st.warning(f"Lottie URL 접근 실패 (Status: {r.status_code}). 애니메이션이 표시되지 않을 수 있습니다.")
             return None
         return r.json()
     except requests.exceptions.RequestException as e:
+        # 네트워크 연결 자체의 문제일 경우 처리
         st.warning(f"Lottie URL 로드 중 네트워크 오류 발생: {e}")
         return None
 
@@ -92,7 +94,7 @@ with st.sidebar:
     
     # Lottie 애니메이션 (뇌/생각)
     lottie_brain = load_lottieurl("https://assets10.lottiefiles.com/packages/lf20_SkhtL8.json")
-    # ✅ Lottie 로딩 실패 시 에러 방지 로직 추가
+    
     if lottie_brain:
         st_lottie(lottie_brain, height=150, key="brain_sidebar")
     
@@ -120,14 +122,13 @@ if selected_mbti == "선택해주세요":
         st.write("👉 **Tip:** 차트는 마우스로 회전하고 확대/축소할 수 있습니다.")
         
     with col2:
-        # 웰컴 애니메이션
-        lottie_welcome = load_lottieurl("https://assets3.lottiefiles.com/packages/lf20_qp1q7wct.json")
+        # ✅ URL 변경: 403 에러가 발생하던 URL을 다른 것으로 교체
+        lottie_welcome = load_lottieurl("https://lottie.host/791c5e7b-c5e3-4f9e-a61b-94c65369c762/jLq9oH2D2y.json")
         
-        # ✅ Lottie 로딩 실패 시 에러 방지 로직 추가
         if lottie_welcome:
             st_lottie(lottie_welcome, height=400, key="welcome")
         else:
-            st.warning("애니메이션 로딩에 실패했습니다. (네트워크/URL 문제)")
+            st.warning("애니메이션 로딩에 실패했습니다. (외부 URL 접근 문제)")
 
 else:
     # --- 선택 후 화면 ---
