@@ -2,24 +2,23 @@ import streamlit as st
 
 # --- 웹 페이지 설정 ---
 # 페이지 제목 설정
-st.title("🐱 이름 입력 및 헬로 월드 출력 앱")
+st.title("🐾 이름 입력 및 헬로 월드 출력 앱 (강아지 배경)")
 
-# 배경 이미지 URL (고양이 이미지)
-# 실제 고양이 이미지 URL로 대체하거나, 로컬 파일을 사용할 수 있습니다.
+# 배경 이미지 URL (강아지 이미지)
+# 실제 강아지 이미지 URL로 대체하거나, 로컬 파일을 사용할 수 있습니다.
 # 여기서는 예시로 Placeholder 이미지를 사용합니다.
-CAT_IMAGE_URL = "https://cdn2.thecatapi.com/images/MTU0MzI1OQ.gif" 
+DOG_IMAGE_URL = "https://cdn2.thecatapi.com/images/MTU0MzI1OQ.gif"
 
 # 배경 이미지를 위한 사용자 정의 CSS (HTML 삽입)
 background_css = f"""
 <style>
 .stApp {{
     /* 배경 이미지를 설정하고, 화면을 꽉 채우며, 반복되지 않도록 합니다. */
-    background-image: url("{CAT_IMAGE_URL}");
+    background-image: url("{DOG_IMAGE_URL}");
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed; /* 스크롤해도 배경 고정 */
     background-position: center center;
-    /* 텍스트가 잘 보이도록 대비를 위한 약간의 투명한 배경을 컨텐츠 영역에 적용할 수도 있습니다. */
 }}
 
 /* Streamlit의 메인 컨텐츠 영역의 배경을 투명하게 만듭니다. */
@@ -64,6 +63,3 @@ if st.button("입력"):
     else:
         # 이름이 입력되지 않았을 경우 안내 메시지 출력
         st.warning("이름을 입력해 주세요.")
-        
-# --- 이미지 시각화 (선택적) ---
-# st.image(CAT_IMAGE_URL, caption="사랑스러운 고양이", width=300)
