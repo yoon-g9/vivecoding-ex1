@@ -1,65 +1,108 @@
 import streamlit as st
 
 # --- 웹 페이지 설정 ---
-# 페이지 제목 설정
-st.title("🐾 이름 입력 및 헬로 월드 출력 앱 (강아지 배경)")
+st.title("🐾 움직이는 강아지 배경 & 강아지 버튼 앱")
 
-# 배경 이미지 URL (강아지 이미지)
-# 실제 강아지 이미지 URL로 대체하거나, 로컬 파일을 사용할 수 있습니다.
-# 여기서는 예시로 Placeholder 이미지를 사용합니다.
-DOG_IMAGE_URL = "https://cdn2.thecatapi.com/images/MTU0MzI1OQ.gif"
+# 움직이는 강아지 배경 GIF URL
+ANIMATED_DOG_GIF_URL = "https://media.giphy.com/media/efg6i9yL7i4M8/giphy.gif"
+# "입력" 버튼으로 사용할 강아지 아이콘 이미지 URL
+DOG_BUTTON_ICON_URL = "https://www.flaticon.com/svg/static/icons/svg/1057/1057088.svg"
 
 # 배경 이미지를 위한 사용자 정의 CSS (HTML 삽입)
 background_css = f"""
 <style>
 .stApp {{
-    /* 배경 이미지를 설정하고, 화면을 꽉 채우며, 반복되지 않도록 합니다. */
-    background-image: url("{DOG_IMAGE_URL}");
+    background-image: url("{ANIMATED_DOG_GIF_URL}");
     background-size: cover;
     background-repeat: no-repeat;
-    background-attachment: fixed; /* 스크롤해도 배경 고정 */
+    background-attachment: fixed;
     background-position: center center;
 }}
 
-/* Streamlit의 메인 컨텐츠 영역의 배경을 투명하게 만듭니다. */
-/* 이렇게 해야 배경 이미지가 보입니다. */
 .stApp > header, .stApp > div:first-child {{
     background-color: rgba(0,0,0,0) !important;
 }}
 
-/* sidebar 배경 투명 설정 */
 [data-testid="stSidebar"] {{
-    background-color: rgba(255, 255, 255, 0.7); /* 사이드바는 가독성을 위해 흰색 반투명으로 */
+    background-color: rgba(255, 255, 255, 0.7);
 }}
 
-/* 텍스트 컨텐츠 자체의 가독성을 높이기 위해 배경색을 약간 조절 */
 [data-testid="stVerticalBlock"] {{
-    background-color: rgba(255, 255, 255, 0.5); 
+    background-color: rgba(255, 255, 255, 0.6); /* 투명도를 조금 높여 GIF가 더 잘 보이도록 */
     padding: 10px;
     border-radius: 10px;
 }}
 
-h1, h2, h3, h4, .stMarkdown, .stTextInput > label, .stButton > button {{
-    color: black; /* 텍스트 색상을 검은색으로 설정 (배경 이미지에 따라 조정 가능) */
-    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8); /* 가독성을 위한 그림자 */
+h1, h2, h3, h4, .stMarkdown, .stTextInput > label {{
+    color: black;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+}}
+
+/* 강아지 버튼 스타일 */
+.stButton > button {{
+    background-color: #6A1B9A; /* 보라색 계열로 버튼 배경색 설정 */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px; /* 둥근 모서리 */
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; /* 아이콘과 텍스트 간격 */
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3); /* 버튼 그림자 */
+}}
+
+.stButton > button:hover {{
+    background-color: #4A148C; /* 호버 시 색상 변경 */
+}}
+
+/* 강아지 아이콘을 버튼 안에 넣기 위한 CSS */
+.dog-button-icon {{
+    width: 24px; /* 아이콘 크기 조절 */
+    height: 24px;
+    vertical-align: middle;
 }}
 
 </style>
 """
 
-# HTML을 사용하여 Streamlit 앱에 CSS 삽입
 st.markdown(background_css, unsafe_allow_html=True)
 
 # --- 사용자 입력 섹션 ---
-# 사용자 이름 입력 필드 생성
 user_name = st.text_input("당신의 이름을 입력하세요:")
 
-# "입력" 버튼 생성
-if st.button("입력"):
-    # 버튼이 클릭되었을 때 실행되는 로직
+# "입력" 버튼 생성 (강아지 아이콘 포함)
+# HTML을 직접 사용하여 버튼 안에 아이콘을 넣습니다.
+button_html = f"""
+<button style="
+    background-color: #4CAF50; /* 버튼 배경색 */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px; /* 둥근 모서리 */
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* 아이콘과 텍스트 사이 간격 */
+">
+    <img src="{DOG_BUTTON_ICON_URL}" alt="Dog Icon" style="width: 24px; height: 24px; filter: invert(100%);">
+    입력
+</button>
+"""
+
+# Streamlit 버튼 클릭 감지를 위해 st.button을 사용하고, 디자인은 CSS로 오버라이드합니다.
+# 하지만 st.button은 내부적으로 자신의 스타일을 강제하기 때문에,
+# 실제 HTML 버튼을 직접 만들어 클릭 이벤트를 처리하는 것은 Streamlit의 철학과 맞지 않습니다.
+# 대신 st.button의 label에 HTML을 넣어 아이콘을 구현하는 방식으로 접근합니다.
+
+# St.button의 label에 이미지와 텍스트를 포함
+if st.button(f'<img src="{DOG_BUTTON_ICON_URL}" class="dog-button-icon" alt="dog"> 입력', unsafe_allow_html=True):
     if user_name:
-        # 입력된 이름과 함께 메시지 출력
-        st.success(f"짠~ **{user_name}**님, 헬로 월드!")
+        st.balloons() # 메시지 출력 시 풍선 효과 추가
+        st.success(f"🐶 짠~ **{user_name}**님, 헬로 월드!")
     else:
-        # 이름이 입력되지 않았을 경우 안내 메시지 출력
         st.warning("이름을 입력해 주세요.")
